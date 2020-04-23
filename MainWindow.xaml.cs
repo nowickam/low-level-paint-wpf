@@ -26,6 +26,7 @@ namespace Paint
         private int width;
         private int stride;
         private List<Shape> shapes;
+        private List<Circle> vertices;
         private List<int> buffer;
         private int tool;
 
@@ -46,6 +47,7 @@ namespace Paint
             canvasContainer.Source = canvas;
 
             shapes = new List<Shape>();
+            vertices = new List<Circle>();
             buffer = new List<int>();
 
             tool = 0;
@@ -78,6 +80,7 @@ namespace Paint
         {
             resetCanvas();
             shapes.Clear();
+            vertices.Clear();
             buffer.Clear();
         }
 
@@ -110,12 +113,31 @@ namespace Paint
             return color;
         }
 
+        private void handleVertex(int x, int y, bool ifAdd)
+        {
+            List<int> tempPoints = new List<int>();
+            tempPoints.Add(x);
+            tempPoints.Add(y);
+            tempPoints.Add(x + 5);
+            tempPoints.Add(y + 5);
+
+            if (ifAdd)
+            {
+                vertices.Add(new Circle(tempPoints, 1, new List<int> { 255, 0, 0 }, stride, ref pixels));
+                updateCanvas();
+            }
+            else
+            {
+                vertices.Add(new Circle(tempPoints, 1, new List<int> { 255, 255, 255 }, stride, ref pixels));
+            }
+        }
+
         private void mouseLeftButton(object sender, MouseButtonEventArgs e)
         {
-            Console.WriteLine("clicked");
-
             int x = (int)e.GetPosition((Image)sender).X;
             int y = (int)e.GetPosition((Image)sender).Y;
+
+            handleVertex(x, y, true);
 
             buffer.Add(x);
             buffer.Add(y);
@@ -129,6 +151,8 @@ namespace Paint
                         shapes.Add(new Line(buffer, 1, color, stride, ref pixels));
                     else
                         shapes.Add(new Circle(buffer, 1, color, stride, ref pixels));
+                    handleVertex(buffer[0], buffer[1], false);
+                    handleVertex(buffer[2], buffer[3], false);
                     buffer.Clear();
                     updateCanvas();
                 }
@@ -143,6 +167,10 @@ namespace Paint
                 {
                     List<int> color = getColor();
                     shapes.Add(new Polygon(buffer, 1, color, stride, ref pixels));
+                    for(int i = 0; i < buffer.Count-1; i++)
+                    {
+                        handleVertex(buffer[i], buffer[i+1], false);
+                    }
                     buffer.Clear();
                     updateCanvas();
                 }
