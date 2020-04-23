@@ -1,0 +1,7 @@
+App.xaml
+App.xaml.cs
+App.config
+Paint.csproj
+Properties/
+bin/
+obj/

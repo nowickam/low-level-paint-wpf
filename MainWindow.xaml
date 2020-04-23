@@ -1,0 +1,56 @@
+﻿<Window x:Class="Paint.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Paint"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="600" Width="900">
+    <Window.Resources>
+        <Style TargetType="{x:Type Button}">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Margin" Value="4"/>
+            <Setter Property="Padding" Value="1"/>
+            <Setter Property="FontFamily" Value="Tahoma"/>
+        </Style>
+        <Style TargetType="{x:Type Slider}">
+            <Setter Property="TickPlacement" Value="BottomRight"/>
+            <Setter Property="TickFrequency" Value="2"/>
+            <Setter Property="IsSnapToTickEnabled" Value="True"/>
+            <Setter Property="Minimum" Value="1"/>
+            <Setter Property="Maximum" Value="9"/>
+            <Setter Property="Value" Value="1"/>
+            <Setter Property="AutoToolTipPlacement" Value="BottomRight"/>
+            <Setter Property="Ticks" Value="1,3,5,7,9"/>
+        </Style>
+    </Window.Resources>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1*"/>
+            <ColumnDefinition Width="4*"/>
+        </Grid.ColumnDefinitions>
+        <StackPanel Name="btnContainer" Orientation="Vertical" Margin="5">
+            <RadioButton Name="LineBtn" Content="Line" IsChecked="True" Checked="LineBtn_Checked"/>
+            <RadioButton Name="CircleBtn" Content="Circle" Checked="CircleBtn_Checked"/>
+            <RadioButton Name="PolyBtn" Content="Polygon" Checked="PolyBtn_Checked"/>
+            <Label>Thickness:</Label>
+            <Slider Name="ThickSlider" ValueChanged="ThickSlider_ValueChanged"/>
+            <Label>Color:</Label>
+            <StackPanel Name="ColorContainer" Orientation="Horizontal">
+                <Label>R</Label>
+                <TextBox Name="RedValue" Text="0" Width="30"  HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+                <Label>G</Label>
+                <TextBox Name="GreenValue" Text="0" Width="30" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+                <Label>B</Label>
+                <TextBox Name="BlueValue" Text="0" Width="30" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+            </StackPanel>
+            <Label>Aliasing:</Label>
+            <CheckBox Name="AliasBox" Checked="AliasBox_Checked"/>
+            <Button Name="SaveBtn" Grid.Column="1" VerticalAlignment="Bottom" Click="SaveBtn_Click" >SAVE</Button>
+            <Button Name="ResetBtn" Grid.Column="1" VerticalAlignment="Bottom" Click="ResetBtn_Click" >RESET</Button>
+        </StackPanel>
+        <Border Name="canvasBorder" Margin="5" Grid.Column="1" BorderThickness="1" BorderBrush="Black">
+            <Image Name="canvasContainer" Grid.Column="1" Stretch="None" MinHeight="500" MinWidth="600" MouseLeftButtonDown="mouseLeftButton" MouseRightButtonDown="mouseRightButton"/>
+        </Border>
+    </Grid>
+</Window>
