@@ -157,25 +157,22 @@ namespace Paint
                     updateCanvas();
                 }
             }
-        }
-
-        private void mouseRightButton(object sender, MouseButtonEventArgs e)
-        {
-            if(tool == 2)
+            if (tool == 2)
             {
-                if (buffer.Count >= 6)
+                if (buffer.Count >= 6 && Math.Abs(x-buffer[0])<=5 && Math.Abs(y - buffer[1]) <= 5)
                 {
                     List<int> color = getColor();
                     shapes.Add(new Polygon(buffer, 1, color, stride, ref pixels));
-                    for(int i = 0; i < buffer.Count-1; i++)
+                    for (int i = 0; i < buffer.Count - 1; i++)
                     {
-                        handleVertex(buffer[i], buffer[i+1], false);
+                        handleVertex(buffer[i], buffer[i + 1], false);
                     }
                     buffer.Clear();
                     updateCanvas();
                 }
             }
         }
+
 
         private void LineBtn_Checked(object sender, RoutedEventArgs e)
         {
