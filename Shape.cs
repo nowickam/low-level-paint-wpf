@@ -42,13 +42,23 @@ namespace Paint
         {
             int anchor;
             int shift = brush.Thickness / 2;
+            bool ifColor = false;
+
             for (int i = -shift; i <= shift; i++)
             {
-                for (int j = -shift; j <= shift; j++)
+                ifColor = false;
+                for (int j = -shift; j <= 0; j++)
                 {
-                    if (brush.Pattern[(i + shift) * brush.Stride + 3*(j + shift)] == 1)
+                    if (brush.Pattern[(i + shift) * brush.Stride + 3 * (j + shift)] == 1)
+                        ifColor = true;
+                    if(ifColor)
                     {
                         anchor = (y+i) * stride + (x+j)*3 ;
+                        pixels[anchor] = (byte)color[0];
+                        pixels[anchor + 1] = (byte)color[1];
+                        pixels[anchor + 2] = (byte)color[2];
+
+                        anchor = (y + i) * stride + (x - j) * 3;
                         pixels[anchor] = (byte)color[0];
                         pixels[anchor + 1] = (byte)color[1];
                         pixels[anchor + 2] = (byte)color[2];

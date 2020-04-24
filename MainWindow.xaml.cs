@@ -114,6 +114,11 @@ namespace Paint
             return (int)ThickSlider.Value;
         }
 
+        private bool getAlias()
+        {
+            return (bool)AliasBox.IsChecked;
+        }
+
         private void handleVertex(int x, int y, bool ifAdd)
         {
             List<int> tempPoints = new List<int>();
@@ -138,13 +143,12 @@ namespace Paint
             int x = (int)e.GetPosition((Image)sender).X;
             int y = (int)e.GetPosition((Image)sender).Y;
 
-            handleVertex(x, y, true);
-
-            buffer.Add(x);
-            buffer.Add(y);
-
+            //line & circle
             if (tool != 2)
             {
+                buffer.Add(x);
+                buffer.Add(y);
+
                 if (buffer.Count == 4)
                 {
                     handleVertex(buffer[0], buffer[1], false);
@@ -152,14 +156,19 @@ namespace Paint
 
                     List<int> color = getColor();
                     if (tool == 0)
-                        shapes.Add(new Line(buffer, getThickness(), color, stride, ref pixels));
+                        shapes.Add(new Line(buffer, getThickness(), color, stride, getAlias(), ref pixels));
                     else
                         shapes.Add(new Circle(buffer, getThickness(), color, stride, ref pixels));
 
                     buffer.Clear();
                     updateCanvas();
                 }
+                else
+                {
+                    handleVertex(x, y, true);
+                }
             }
+            //polygon
             if (tool == 2)
             {
                 if (buffer.Count >= 6 && Math.Abs(x-buffer[0])<=5 && Math.Abs(y - buffer[1]) <= 5)
@@ -170,10 +179,16 @@ namespace Paint
                     }
 
                     List<int> color = getColor();
-                    shapes.Add(new Polygon(buffer, getThickness(), color, stride, ref pixels));
+                    shapes.Add(new Polygon(buffer, getThickness(), color, stride, getAlias(), ref pixels));
 
                     buffer.Clear();
                     updateCanvas();
+                }
+                else
+                {
+                    buffer.Add(x);
+                    buffer.Add(y);
+                    handleVertex(x, y, true);
                 }
             }
         }
