@@ -11,10 +11,11 @@ namespace Paint
         private List<Line> edges;
         public Polygon(List<int> _points, int _thickness, List<int> _color, int _stride, ref byte[] pixels) : base(_points, _thickness, _color, _stride)
         {
-            drawPolygon(points, ref pixels);
+            DrawShape(ref pixels);
         }
 
-        private void drawPolygon(List<int> points, ref byte[] pixels)
+
+        protected override void DrawShape(ref byte[] pixels)
         {
             edges = new List<Line>();
             List<int> tempPoints = new List<int>();
@@ -24,7 +25,7 @@ namespace Paint
                 tempPoints.Add(points[2 * i + 1]);
                 tempPoints.Add(points[(2 * i + 2) % points.Count]);
                 tempPoints.Add(points[(2 * i + 3) % points.Count]);
-                edges.Add(new Line(tempPoints, 1, color, stride, ref pixels));
+                edges.Add(new Line(tempPoints, thickness, color, stride, ref pixels));
                 tempPoints.Clear();
             }
         }

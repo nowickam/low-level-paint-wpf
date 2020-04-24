@@ -10,7 +10,12 @@ namespace Paint
     {
         public Line(List<int> _points, int _thickness, List<int> _color, int _stride, ref byte[] pixels) : base(_points, _thickness, _color, _stride)
         {
-            lineDDA(_points[0], _points[1], _points[2], _points[3], ref pixels);
+            DrawShape(ref pixels);   
+        }
+
+        protected override void DrawShape(ref byte[] pixels)
+        {
+            lineDDA(points[0], points[1], points[2], points[3], ref pixels);
         }
 
         private void lineDDA(int x1, int y1, int x2, int y2, ref byte[] pixels)
@@ -29,10 +34,11 @@ namespace Paint
             int i = 0;
             while (i < step)
             {
-                int location = (int)Math.Round(y) * stride + (int)Math.Round(x) * 3;
-                pixels[location] = (byte)color[0];
-                pixels[location + 1] = (byte)color[1];
-                pixels[location + 2] = (byte)color[2];
+                //int location = (int)Math.Round(y) * stride + (int)Math.Round(x) * 3;
+                //pixels[location] = (byte)color[0];
+                //pixels[location + 1] = (byte)color[1];
+                //pixels[location + 2] = (byte)color[2];
+                SetPixel((int)Math.Round(x), (int)Math.Round(y), ref pixels);
                 y += dy;
                 x += dx;
                 i++;

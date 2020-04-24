@@ -6,20 +6,25 @@ using System.Threading.Tasks;
 
 namespace Paint
 {
-    abstract class Shape
+    public abstract class Shape
     {
-        public List<int> points;
+        protected List<int> points;
 
-        public int thickness;
-        public List<int> color;
+        protected int thickness;
 
-        public int stride;
+        protected Brush brush;
+
+        protected List<int> color;
+
+        protected int stride;
 
         public Shape(List<int> _points, int _thickness, List<int> _color, int _stride)
         {
             points = _points;
 
             thickness = _thickness;
+
+            brush = new Brush(thickness);
 
             stride = _stride;
 
@@ -31,5 +36,27 @@ namespace Paint
 
         }
 
+        protected abstract void DrawShape(ref byte[] pixels);
+
+        protected void SetPixel(int x, int y, ref byte[] pixels)
+        {
+            int anchor;
+            int shift = brush.Thickness / 2;
+            for (int i = -shift; i <= shift; i++)
+            {
+                for (int j = -shift; j <= shift; j++)
+                {
+                    if (brush.Pattern[(i + shift) * brush.Stride + 3*(j + shift)] == 1)
+                    {
+                        anchor = (y+i) * stride + (x+j)*3 ;
+                        pixels[anchor] = (byte)color[0];
+                        pixels[anchor + 1] = (byte)color[1];
+                        pixels[anchor + 2] = (byte)color[2];
+                    }
+                }
+            } 
+        }
     }
+
+     
 }

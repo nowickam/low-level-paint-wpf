@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Paint
 {
-    class Circle :Shape
+    class Circle : Shape
     {
         int R;
         int cX;
@@ -18,25 +18,35 @@ namespace Paint
             R = (int)Math.Sqrt(Math.Pow(dx, 2) + Math.Pow(dy, 2));
             cX = points[0];
             cY = points[1];
-            midpointCircle(R, ref pixels); ;
+            DrawShape(ref pixels);
         }
 
-        void setColor(int x, int y, ref byte[] pixels)
+        protected override void DrawShape(ref byte[] pixels)
         {
-            if (cX + x >= 0 && cX + x < stride/3 && cY + y >= 0 && cY + y < (pixels.Length / stride))
+            MidpointCircle(R, ref pixels);
+        }
+
+        private void SetColor(int x, int y, ref byte[] pixels)
+        {
+            if (cX + x - thickness + 1  >= 0 && cX + x + thickness - 1 < stride/3 && cY + y - thickness + 1 >= 0 && cY + y + thickness - 1 < (pixels.Length / stride))
             {
-                int location = (cX + x) * 3 + (cY + y) * stride;
-                pixels[location] = (byte)color[0];
-                pixels[location + 1] = (byte)color[1];
-                pixels[location + 2] = (byte)color[2];
+                SetPixel(cX + x, cY + y, ref pixels);
             }
         }
 
-        void midpointCircle(int R, ref byte[] pixels)
+        void MidpointCircle(int R, ref byte[] pixels)
         {
             int d = 1 - R;
             int x = 0;
             int y = R;
+            SetColor(x, y, ref pixels);
+            SetColor(-x, y, ref pixels);
+            SetColor(x, -y, ref pixels);
+            SetColor(-x, -y, ref pixels);
+            SetColor(y, x, ref pixels);
+            SetColor(-y, x, ref pixels);
+            SetColor(y, -x, ref pixels);
+            SetColor(-y, -x, ref pixels);
             do
             {
                 if (d < 0) //move to E
@@ -47,15 +57,16 @@ namespace Paint
                     y--;
                 }
                 x++;
-                setColor(x, y, ref pixels);
-                setColor(-x, y, ref pixels);
-                setColor(x, -y, ref pixels);
-                setColor(-x, -y, ref pixels);
-                setColor(y, x, ref pixels);
-                setColor(-y, x, ref pixels);
-                setColor(y, -x, ref pixels);
-                setColor(-y, -x, ref pixels);
+                SetColor(x, y, ref pixels);
+                SetColor(-x, y, ref pixels);
+                SetColor(x, -y, ref pixels);
+                SetColor(-x, -y, ref pixels);
+                SetColor(y, x, ref pixels);
+                SetColor(-y, x, ref pixels);
+                SetColor(y, -x, ref pixels);
+                SetColor(-y, -x, ref pixels);
             } while (y > x);
+
         }
     }
 }

@@ -57,12 +57,8 @@ namespace Paint
         {
             for(int i=0; i < pixels.Length; i++)
             {
-                pixels[i] = 250;
+                pixels[i] = 200;
             }
-            pixels[10 * stride + 10] = 0;
-            pixels[10 * stride + 11] = 0;
-            pixels[10 * stride + 12] = 0;
-
             updateCanvas();
         }
 
@@ -113,6 +109,11 @@ namespace Paint
             return color;
         }
 
+        private int getThickness()
+        {
+            return (int)ThickSlider.Value;
+        }
+
         private void handleVertex(int x, int y, bool ifAdd)
         {
             List<int> tempPoints = new List<int>();
@@ -146,13 +147,15 @@ namespace Paint
             {
                 if (buffer.Count == 4)
                 {
-                    List<int> color = getColor();
-                    if (tool == 0)
-                        shapes.Add(new Line(buffer, 1, color, stride, ref pixels));
-                    else
-                        shapes.Add(new Circle(buffer, 1, color, stride, ref pixels));
                     handleVertex(buffer[0], buffer[1], false);
                     handleVertex(buffer[2], buffer[3], false);
+
+                    List<int> color = getColor();
+                    if (tool == 0)
+                        shapes.Add(new Line(buffer, getThickness(), color, stride, ref pixels));
+                    else
+                        shapes.Add(new Circle(buffer, getThickness(), color, stride, ref pixels));
+
                     buffer.Clear();
                     updateCanvas();
                 }
@@ -161,12 +164,14 @@ namespace Paint
             {
                 if (buffer.Count >= 6 && Math.Abs(x-buffer[0])<=5 && Math.Abs(y - buffer[1]) <= 5)
                 {
-                    List<int> color = getColor();
-                    shapes.Add(new Polygon(buffer, 1, color, stride, ref pixels));
-                    for (int i = 0; i < buffer.Count - 1; i++)
+                    for (int i = 0; i < buffer.Count - 1; i+=2)
                     {
                         handleVertex(buffer[i], buffer[i + 1], false);
                     }
+
+                    List<int> color = getColor();
+                    shapes.Add(new Polygon(buffer, getThickness(), color, stride, ref pixels));
+
                     buffer.Clear();
                     updateCanvas();
                 }
