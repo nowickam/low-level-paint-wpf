@@ -15,7 +15,40 @@ namespace Paint
             DrawShape(ref pixels);   
         }
 
-        protected override void DrawShape(ref byte[] pixels)
+        public override void Edit(List<int> newPoints, int? newThickness, List<int> newColor)
+        {
+            points = newPoints == null ? points : newPoints;
+            thickness = newThickness == null ? thickness : (int)newThickness;
+            if (newThickness != null) brush = new Brush(thickness);
+            color = newColor == null ? color : new List<int>(newColor);
+        }
+
+        public void changeAlias(bool ifAlias)
+        {
+            aliasing = ifAlias;
+        }
+
+        public override Shape CheckClick(int x, int y)
+        {
+            if(editMode == true)
+            {
+                editMode = false;
+                return this;
+            }
+            else if(points[0]>=x-5 && points[0] <= x+5 && points[1] >= y-5 && points[1] <= y+5)
+            {
+                editMode = true;
+                return this;
+            }
+            else if (points[2] >= x - 5 && points[2] <= x + 5 && points[3] >= y - 5 && points[3] <= y + 5)
+            {
+                editMode = true;
+                return this;
+            }
+            return null;
+        }
+
+        public override void DrawShape(ref byte[] pixels)
         {
             if (aliasing)
                 GuptaSproull(ref pixels);
@@ -44,7 +77,10 @@ namespace Paint
 
             while (i < step)
             {
-                SetPixel((int)Math.Round(x), (int)Math.Round(y), ref pixels);
+                if (x - thickness + 1 >= 0 && x + thickness - 1 < stride / 3 && y - thickness + 1 >= 0 && y + thickness - 1 < (pixels.Length / stride))
+                {
+                    SetPixel((int)Math.Round(x), (int)Math.Round(y), ref pixels);
+                }
                 y += dy;
                 x += dx;
                 i++;
@@ -87,11 +123,14 @@ namespace Paint
             float cov = Coverage(thickness, distance, r);
             if (cov > 0)
             {
-                int location = y  * stride + x  * 3;
-                List<int> aliasColor = getColorCoverage(new List<int> { 255, 255, 255 }, color, cov);
-                pixels[location] = (byte)aliasColor[0];
-                pixels[location + 1] = (byte)aliasColor[1];
-                pixels[location + 2] = (byte)aliasColor[2];
+                if (x - thickness + 1 >= 0 && x + thickness - 1 < stride / 3 && y - thickness + 1 >= 0 && y + thickness - 1 < (pixels.Length / stride))
+                {
+                    int location = y * stride + x * 3;
+                    List<int> aliasColor = getColorCoverage(new List<int> { 255, 255, 255 }, color, cov);
+                    pixels[location] = (byte)aliasColor[0];
+                    pixels[location + 1] = (byte)aliasColor[1];
+                    pixels[location + 2] = (byte)aliasColor[2];
+                }
             }
             return cov;
         }
@@ -170,7 +209,7 @@ namespace Paint
             int x = x0;
 
             int twoVDx = 0;
-            float invDenom = (float)(1 / (2 * Math.Sqrt(dy * dx + dy + dy)));
+            float invDenom = (float)(1 / (2 * Math.Sqrt(dy * dy + dx + dx)));
             float twoDxInvDenom = 2 * dy * invDenom;
 
             while (y < y1)
@@ -193,5 +232,7 @@ namespace Paint
                 y += 1;
             }
         }
+
+
     }
 }

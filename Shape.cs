@@ -18,9 +18,11 @@ namespace Paint
 
         protected int stride;
 
+        protected bool editMode;
+
         public Shape(List<int> _points, int _thickness, List<int> _color, int _stride)
         {
-            points = _points;
+            points = new List<int>(_points);
 
             thickness = _thickness;
 
@@ -34,9 +36,12 @@ namespace Paint
                 color.Add(_color[i]);
             }
 
+            editMode = false;
+
         }
 
-        protected abstract void DrawShape(ref byte[] pixels);
+        public abstract void Edit(List<int> newPoints, int? newThickness, List<int> newColor);
+        public abstract void DrawShape(ref byte[] pixels);
 
         protected void SetPixel(int x, int y, ref byte[] pixels)
         {
@@ -66,6 +71,29 @@ namespace Paint
                 }
             } 
         }
+
+        public List<int> Points
+        {
+            get { return points; }
+        }
+
+        public bool EditMode
+        {
+            get { return editMode; }
+            set { editMode = value; }
+        }
+
+        public int Thickness
+        {
+            get { return thickness; }
+        }
+
+        public List<int> Color
+        {
+            get { return color; }
+        }
+
+        public abstract Shape CheckClick(int x, int y);
     }
 
      

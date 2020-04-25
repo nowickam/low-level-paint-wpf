@@ -8,22 +8,66 @@ namespace Paint
 {
     class Circle : Shape
     {
-        int R;
-        int cX;
-        int cY;
+        private int r;
+        private int cX;
+        private int cY;
+
+        public int CX
+        {
+            get { return cX; }
+            set { cX = value; }
+        }
+
+        public int CY
+        {
+            get { return cY; }
+            set { cY = value; }
+        }
+
+        public int R
+        {
+            get { return r; }
+            set { r = value; }
+        }
         public Circle(List<int> _points, int _thickness, List<int> _color, int _stride, ref byte[] pixels) : base(_points, _thickness, _color, _stride)
         {
             int dx = Math.Abs(points[0]) - Math.Abs(points[2]);
             int dy = Math.Abs(points[1]) - Math.Abs(points[3]);
-            R = (int)Math.Sqrt(Math.Pow(dx, 2) + Math.Pow(dy, 2));
+            r = (int)Math.Sqrt(Math.Pow(dx, 2) + Math.Pow(dy, 2));
             cX = points[0];
             cY = points[1];
             DrawShape(ref pixels);
         }
 
-        protected override void DrawShape(ref byte[] pixels)
+        public override void Edit(List<int> newPoints, int? newThickness, List<int> newColor)
         {
-            MidpointCircle(R, ref pixels);
+            points = newPoints == null ? points : newPoints;
+            thickness = newThickness == null ? thickness : (int)newThickness;
+            if (newThickness != null) brush = new Brush(thickness);
+            color = newColor == null ? color : new List<int>(newColor);
+
+            int dx = Math.Abs(points[0]) - Math.Abs(points[2]);
+            int dy = Math.Abs(points[1]) - Math.Abs(points[3]);
+            r = (int)Math.Sqrt(Math.Pow(dx, 2) + Math.Pow(dy, 2));
+            cX = points[0];
+            cY = points[1];
+        }
+
+        public override Shape CheckClick(int x, int y)
+        {
+            int dx = cX - x;
+            int dy = cY - y;
+            if (Math.Sqrt(dx * dx + dy * dy) >= r - 5 && Math.Sqrt(dx * dx + dy * dy) <= r + 5)
+            {
+                editMode = true;
+                return this;
+            }
+            return null;         
+        }
+
+        public override void DrawShape(ref byte[] pixels)
+        {
+            MidpointCircle(r, ref pixels);
         }
 
         private void SetColor(int x, int y, ref byte[] pixels)
@@ -68,5 +112,7 @@ namespace Paint
             } while (y > x);
 
         }
+
+
     }
 }
