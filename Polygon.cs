@@ -18,9 +18,17 @@ namespace Paint
 
         public override Shape CheckClick(int x, int y)
         {
+            
             foreach(Line e in edges)
             {
-                if (e.CheckClick(x, y) != null) return this;
+                Shape check = e.CheckClick(x, y);
+                
+                if (check != null)
+                {
+                    check.EditMode = false;
+                    editMode = true;                   
+                    return this;
+                }
             }
             return null;
         }
