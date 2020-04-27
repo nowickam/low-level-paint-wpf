@@ -30,7 +30,9 @@ namespace Paint
 
             dx = cX2 - cX1;
             dy = cY2 - cY1;
+
             double l = Math.Sqrt(Math.Pow(dx, 2) + Math.Pow(dy, 2));
+
             double temp = dx;
             dx =  dy / l * r;
             dy = -temp / l * r;
