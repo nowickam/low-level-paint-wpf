@@ -13,6 +13,14 @@
             <Setter Property="Padding" Value="1"/>
             <Setter Property="FontFamily" Value="Tahoma"/>
         </Style>
+        <Style TargetType="{x:Type TextBlock}">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Margin" Value="4"/>
+            <Setter Property="Padding" Value="1"/>
+            <Setter Property="FontFamily" Value="Tahoma"/>
+            <Setter Property="TextAlignment" Value="Center"/>
+            <Setter Property="TextWrapping" Value ="Wrap"/>
+        </Style>
         <Style TargetType="{x:Type Slider}">
             <Setter Property="TickPlacement" Value="BottomRight"/>
             <Setter Property="TickFrequency" Value="2"/>
@@ -26,13 +34,14 @@
     </Window.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="1*"/>
-            <ColumnDefinition Width="4*"/>
+            <ColumnDefinition Width="200"/>
+            <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
-        <StackPanel Name="btnContainer" Orientation="Vertical" Margin="5">
+        <StackPanel Name="btnContainer" Orientation="Vertical" Margin="10">
             <RadioButton Name="LineBtn" Content="Line" IsChecked="True" Checked="LineBtn_Checked"/>
             <RadioButton Name="CircleBtn" Content="Circle" Checked="CircleBtn_Checked"/>
             <RadioButton Name="PolyBtn" Content="Polygon" Checked="PolyBtn_Checked"/>
+            <RadioButton Name="CapsuleBtn" Content="Capsule" Checked="CapsuleBtn_Checked"/>
             <Label>Thickness:</Label>
             <Slider Name="ThickSlider" ValueChanged="ThickSlider_ValueChanged"/>
             <Label>Color:</Label>
@@ -46,12 +55,15 @@
             </StackPanel>
             <Label>Aliasing:</Label>
             <CheckBox Name="AliasBox" Click="AliasBox_Checked" />
+            <Button Name="ApplyColorBtn" Click="ApplyColorBtn_Click" IsEnabled="False">Apply new color</Button>
             <Button Name="DeleteBtn" Click="DeleteBtn_Click" IsEnabled="False">Delete shape</Button>
-            <Button Name="SaveBtn" VerticalAlignment="Bottom" Click="SaveBtn_Click" >SAVE</Button>
+            <TextBlock Name="Info" MinHeight="150"/>
             <Button Name="ResetBtn"  VerticalAlignment="Bottom" Click="ResetBtn_Click" >RESET</Button>
+            <Button Name="SaveBtn" VerticalAlignment="Bottom" Click="SaveBtn_Click" >SAVE</Button>
+            <Button Name="LoadBtn" VerticalAlignment="Bottom" Click="LoadBtn_Click" >LOAD</Button>
         </StackPanel>
         <Border Name="canvasBorder" Margin="5" Grid.Column="1" BorderThickness="1" BorderBrush="Black">
-            <Image Name="canvasContainer" Grid.Column="1" Stretch="None" Height="5000" Width="6000" MouseLeftButtonDown="MouseLeftButton"/>
+            <Image Name="canvasContainer" Grid.Column="1" Stretch="None" MouseLeftButtonDown="MouseLeftButton"/>
         </Border>
     </Grid>
 </Window>

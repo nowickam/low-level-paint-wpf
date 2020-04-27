@@ -78,11 +78,8 @@ namespace Paint
             }
         }
 
-        void MidpointCircle(int R, ref byte[] pixels)
+        private void SetPixelAllOctan(int x, int y, ref byte[] pixels)
         {
-            int d = 1 - R;
-            int x = 0;
-            int y = R;
             SetColor(x, y, ref pixels);
             SetColor(-x, y, ref pixels);
             SetColor(x, -y, ref pixels);
@@ -91,6 +88,14 @@ namespace Paint
             SetColor(-y, x, ref pixels);
             SetColor(y, -x, ref pixels);
             SetColor(-y, -x, ref pixels);
+        }
+
+        void MidpointCircle(int R, ref byte[] pixels)
+        {
+            int d = 1 - R;
+            int x = 0;
+            int y = R;
+            SetPixelAllOctan(x, y, ref pixels);
             do
             {
                 if (d < 0) //move to E
@@ -101,14 +106,7 @@ namespace Paint
                     y--;
                 }
                 x++;
-                SetColor(x, y, ref pixels);
-                SetColor(-x, y, ref pixels);
-                SetColor(x, -y, ref pixels);
-                SetColor(-x, -y, ref pixels);
-                SetColor(y, x, ref pixels);
-                SetColor(-y, x, ref pixels);
-                SetColor(y, -x, ref pixels);
-                SetColor(-y, -x, ref pixels);
+                SetPixelAllOctan(x, y, ref pixels);
             } while (y > x);
 
         }

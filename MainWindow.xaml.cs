@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -30,8 +32,8 @@ namespace Paint
         {
             InitializeComponent();
 
-            width = (int)canvasContainer.Width;
-            height = (int)canvasContainer.Height;
+            width = (int)SystemParameters.PrimaryScreenWidth ;
+            height = (int)SystemParameters.PrimaryScreenHeight ;
             stride = width * 3;
 
             canvas = new WriteableBitmap(width, height, 96, 96, PixelFormats.Rgb24, null);
@@ -79,9 +81,113 @@ namespace Paint
             }
         }
 
+        private string ShapeToText()
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach(Shape s in shapes)
+            {
+                sb.Append(s.GetType().Name+":");
+                foreach(int point in s.Points)
+                {
+                    sb.Append(point.ToString() + ",");
+                }
+                sb.Remove(sb.Length-1,1);
+                sb.Append(":");
+                foreach (int c in s.Color)
+                {
+                    sb.Append(c.ToString() + ",");
+                }
+                sb.Remove(sb.Length - 1, 1);
+                sb.Append(":");
+                sb.Append(s.Thickness+"\n");
+            }
+            if(sb.Length>0)sb.Remove(sb.Length - 1, 1);
+            return sb.ToString();
+        }
+
+        private List<Shape> TextToShape(string[] text)
+        {
+            List<Shape> shapes = new List<Shape>();
+            foreach(string line in text)
+            {
+                string[] attr = line.Split(':');
+
+                string[] pts = attr[1].Split(',');
+                List<int> points = new List<int>();
+                foreach (string pt in pts)
+                    points.Add(int.Parse(pt));
+
+                string[] clrs = attr[2].Split(',');
+                List<int> color = new List<int>();
+                foreach (string cl in clrs)
+                    color.Add(int.Parse(cl));
+
+                int thickness = int.Parse(attr[3]);
+                Shape s;
+
+                switch (attr[0])
+                {
+                    case "Line":
+                        s = new Line(points, thickness, color, stride, GetAlias(), ref pixels);
+                        break;
+                    case "Polygon":
+                        s = new Polygon(points, thickness, color, stride, GetAlias(), ref pixels);
+                        break;
+                    case "Circle":
+                        s = new Circle(points, thickness, color, stride, ref pixels);
+                        break;
+                    default:
+                        s = null;
+                        break;
+                }
+
+                if(s!=null) shapes.Add(s);
+                Console.WriteLine(s.GetType().Name);
+            }
+            return shapes;
+        }
+
         private void SaveBtn_Click(object sender, RoutedEventArgs e)
         {
+            string shapeText = ShapeToText();
+            System.Windows.Forms.SaveFileDialog dialog = new System.Windows.Forms.SaveFileDialog();
+            dialog.Filter = "Paint files(*.paint)|*.paint";
+            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                File.WriteAllText(dialog.FileName, shapeText);
+            }
+        }
 
+        private void LoadBtn_Click(object sender, RoutedEventArgs e)
+        {
+            Stream fileStream;
+            StreamReader fileReader;
+            string shapeText=string.Empty;
+            System.Windows.Forms.OpenFileDialog dialog = new System.Windows.Forms.OpenFileDialog();
+            dialog.Filter = "Paint files(*.paint)|*.paint";
+            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                fileStream = dialog.OpenFile();
+                fileReader = new StreamReader(fileStream);
+                shapeText = fileReader.ReadToEnd();
+
+                if (shapeText != "")
+                {
+                    string[] shapesText = shapeText.Split('\n');
+                    shapes.Clear();
+                    shapes = TextToShape(shapesText);
+                    newShape = false;
+                }
+                else
+                {
+                    shapes.Clear();
+                    newShape = true;
+
+                }
+                vertices.Clear();
+                buffer.Clear();
+                Redraw();
+            }
         }
 
         private void ResetBtn_Click(object sender, RoutedEventArgs e)
@@ -91,6 +197,7 @@ namespace Paint
             shapes.Clear();
             vertices.Clear();
             buffer.Clear();
+            Info.Text = "";
             newShape = true;
         }
 
@@ -178,7 +285,30 @@ namespace Paint
                     shapes.Add(new Circle(buffer, GetThickness(), color, stride, ref pixels));
 
                 buffer.Clear();
+                Info.Text = "";
                 Redraw();
+            }
+            else
+            {
+                newShape = true;
+                HandleVertex(x, y, 1);
+            }
+        }
+
+        private void NewCapsule(int x, int y)
+        {
+            buffer.Add(x);
+            buffer.Add(y);
+
+            if (buffer.Count == 6)
+            {
+                Redraw();
+                newShape = false;
+                Capsule c = new Capsule(buffer, GetThickness(), GetColor(), stride, ref pixels);
+                shapes.Add(c);
+                buffer.Clear();
+                Info.Text = "";
+                Paint();
             }
             else
             {
@@ -192,12 +322,14 @@ namespace Paint
             if (buffer.Count >= 6 && Math.Abs(x - buffer[0]) <= V_SIZE && Math.Abs(y - buffer[1]) <= V_SIZE)
             {
                 newShape = false;
+                //delete vertices
                 Redraw();
 
                 List<int> color = GetColor();
                 shapes.Add(new Polygon(buffer, GetThickness(), color, stride, GetAlias(), ref pixels));
 
                 buffer.Clear();
+                Info.Text = "";
                 Paint();
             }
             else
@@ -206,6 +338,7 @@ namespace Paint
                 buffer.Add(x);
                 buffer.Add(y);
                 HandleVertex(x, y, 1);
+                Info.Text += "\nTo finish shape click near the start";
             }
         }
 
@@ -235,16 +368,20 @@ namespace Paint
         {
             //finish editing
             DeleteBtn.IsEnabled = false;
+            ApplyColorBtn.IsEnabled = false;
             if (buffer.Count == 2)
             {
                 existingShape.Edit(new List<int> { buffer[0], buffer[1], x, y }, null, null);
                 Redraw();
                 buffer.Clear();
+                Info.Text = "";
             }
             //start editing
-            else
+            else if(buffer.Count==0)
             {
+                Info.Text = "Click somewhere to change the position of the vertex";
                 DeleteBtn.IsEnabled = true;
+                ApplyColorBtn.IsEnabled = true;
                 HandleVertex(x, y, 2);
                 if (x <= existingShape.Points[0] + V_SIZE && x >= existingShape.Points[0] - V_SIZE)
                 {
@@ -264,7 +401,9 @@ namespace Paint
             int cx = ((Circle)existingShape).CX, cy = ((Circle)existingShape).CY;
             if (buffer.Count == 0)
             {
+                Info.Text = "Click on the circle to change the radius,\n click on the center to move the circle";
                 DeleteBtn.IsEnabled = true;
+                ApplyColorBtn.IsEnabled = true;
                 HandleVertex(cx, cy, 2);
                 buffer.Add(cx);
                 buffer.Add(cy);
@@ -272,9 +411,11 @@ namespace Paint
             else if (buffer.Count == 2)
             {
                 DeleteBtn.IsEnabled = false;
+                ApplyColorBtn.IsEnabled = false;
                 //if clicked on the center -> move the circle
                 if (x <= cx + 5 && x >= cx - 5 && y <= cy + 5 && y >= cy - 5)
                 {
+                    Info.Text = "Click somewhere to change the position of the circle";
                     HandleVertex(cx, cy, 0);
                     int r = ((Circle)existingShape).R;
                     existingShape.EditMode = true;
@@ -286,6 +427,7 @@ namespace Paint
                     existingShape.Edit(new List<int> { buffer[0], buffer[1], x, y }, null, null);
                     Redraw();
                     buffer.Clear();
+                    Info.Text = "";
                 }
             }
             //new center
@@ -294,6 +436,7 @@ namespace Paint
                 existingShape.Edit(new List<int> { x, y, x, y + buffer[2] }, null, null);
                 Redraw();
                 buffer.Clear();
+                Info.Text = "";
             }
         }
 
@@ -301,7 +444,9 @@ namespace Paint
         {
             if (buffer.Count == 0)
             {
+                Info.Text = "Choose one vertex to change the vertex' position,\n choose two neighboring vertices to change the edge's position,\n choose three neighboring vertices to change the position of the polygon";
                 DeleteBtn.IsEnabled = true;
+                ApplyColorBtn.IsEnabled = true;
                 HandleVertex(x, y, 2);
                 buffer.Add(x);
                 buffer.Add(y);
@@ -309,6 +454,7 @@ namespace Paint
             else if (buffer.Count == 2)
             {
                 DeleteBtn.IsEnabled = false;
+                ApplyColorBtn.IsEnabled = false;
                 List<int> nb = (existingShape as Polygon).CheckNeighborClick(buffer[0], buffer[1], x, y);
                 //move vertex
                 if (nb.Count == 2)
@@ -317,10 +463,12 @@ namespace Paint
                     existingShape.Edit(existingShape.Points, null, null);
                     Redraw();
                     buffer.Clear();
+                    Info.Text = "";
                 }
                 //move edge
                 else if (nb.Count == 4)
                 {
+                    Info.Text = "Choose the place to change the position of the edge,\n click on a neighboring vertex to move the polygon";
                     HandleVertex(x, y, 0);
                     HandleVertex(buffer[0], buffer[1], 0);
                     existingShape.EditMode = true;
@@ -346,10 +494,12 @@ namespace Paint
                     existingShape.Edit(existingShape.Points, null, null);
                     Redraw();
                     buffer.Clear();
+                    Info.Text = "";
                 }
                 //move entire polygon
                 else
                 {
+                    Info.Text = "Click somewhere to change the position of the polygon";
                     HandleVertex(x, y, 0);
 
                     int x1 = Math.Max(Math.Max(x, buffer[2]), buffer[4]);
@@ -378,6 +528,7 @@ namespace Paint
                 existingShape.Edit(existingShape.Points, null, null);
                 Redraw();
                 buffer.Clear();
+                Info.Text = "";
             }
         }
 
@@ -406,8 +557,9 @@ namespace Paint
             }
             else
             {
+                Info.Text = "Click to place new vertex";
                 //new line or circle
-                if (tool != 2)
+                if (tool <= 2)
                 {
                     NewLineCircle(x, y);
                 }
@@ -416,25 +568,41 @@ namespace Paint
                 {
                     NewPolygon(x, y);
                 }
+                if(tool == 3)
+                {
+                    NewCapsule(x, y);
+                }
             }
         }
 
 
         private void LineBtn_Checked(object sender, RoutedEventArgs e)
         {
-            if (buffer != null) buffer.Clear();
+            if (buffer != null)
+            {
+                buffer.Clear();
+                Redraw();
+            }            
             tool = 0;
         }
 
         private void CircleBtn_Checked(object sender, RoutedEventArgs e)
         {
-            if (buffer != null) buffer.Clear();
+            if (buffer != null)
+            {
+                buffer.Clear();
+                Redraw();
+            }
             tool = 1;
         }
 
         private void PolyBtn_Checked(object sender, RoutedEventArgs e)
         {
-            if (buffer != null) buffer.Clear();
+            if (buffer != null)
+            {
+                buffer.Clear();
+                Redraw();
+            }
             tool = 2;
         }
 
@@ -472,10 +640,12 @@ namespace Paint
         {
             Shape edited = CheckEditMode();
             int value = (int)((Slider)sender).Value;
+            
             if (edited != null)
             {
                 edited.EditMode = false;
                 buffer.Clear();
+                Info.Text = "";
                 edited.Edit(null, value, null);
                 Redraw();
             }
@@ -485,12 +655,42 @@ namespace Paint
         {
             Shape edited = CheckEditMode();
             DeleteBtn.IsEnabled = false;
+            ApplyColorBtn.IsEnabled = false;
+            
             if (edited != null)
             {
                 buffer.Clear();
+                Info.Text = "";
                 shapes.Remove(edited);
                 Redraw();
             }
+        }
+
+        private void ApplyColorBtn_Click(object sender, RoutedEventArgs e)
+        {
+            Shape edited = CheckEditMode();
+            List<int> color = GetColor();
+            DeleteBtn.IsEnabled = false;
+            ApplyColorBtn.IsEnabled = false;
+            
+            if (edited != null)
+            {
+                edited.EditMode = false;
+                buffer.Clear();
+                Info.Text = "";
+                edited.Edit(null, null, color);
+                Redraw();
+            }
+        }
+
+        private void CapsuleBtn_Checked(object sender, RoutedEventArgs e)
+        {
+            if (buffer != null)
+            {
+                buffer.Clear();
+                Redraw();
+            }
+            tool = 3;
         }
     }
 }
