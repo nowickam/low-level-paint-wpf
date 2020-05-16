@@ -40,6 +40,7 @@
         <StackPanel Name="btnContainer" Orientation="Vertical" Margin="10">
             <RadioButton Name="LineBtn" Content="Line" IsChecked="True" Checked="LineBtn_Checked"/>
             <RadioButton Name="CircleBtn" Content="Circle" Checked="CircleBtn_Checked"/>
+            <RadioButton Name="RectBtn" Content="Rectangle" Checked="RectBtn_Checked"/>
             <RadioButton Name="PolyBtn" Content="Polygon" Checked="PolyBtn_Checked"/>
             <RadioButton Name="CapsuleBtn" Content="Capsule" Checked="CapsuleBtn_Checked"/>
             <Label>Thickness:</Label>

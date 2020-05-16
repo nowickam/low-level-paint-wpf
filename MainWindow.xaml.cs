@@ -606,6 +606,26 @@ namespace Paint
             tool = 2;
         }
 
+        private void CapsuleBtn_Checked(object sender, RoutedEventArgs e)
+        {
+            if (buffer != null)
+            {
+                buffer.Clear();
+                Redraw();
+            }
+            tool = 3;
+        }
+
+        private void RectBtn_Checked(object sender, RoutedEventArgs e)
+        {
+            if (buffer != null)
+            {
+                buffer.Clear();
+                Redraw();
+            }
+            tool = 4;
+        }
+
         private void AliasBox_Checked(object sender, RoutedEventArgs e)
         {
             bool isChecked = (bool)(sender as CheckBox).IsChecked;
@@ -683,14 +703,5 @@ namespace Paint
             }
         }
 
-        private void CapsuleBtn_Checked(object sender, RoutedEventArgs e)
-        {
-            if (buffer != null)
-            {
-                buffer.Clear();
-                Redraw();
-            }
-            tool = 3;
-        }
     }
 }
