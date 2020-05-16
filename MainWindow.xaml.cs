@@ -326,6 +326,7 @@ namespace Paint
                 Redraw();
 
                 List<int> color = GetColor();
+                buffer.RemoveRange(buffer.Count - 2, 2);
                 shapes.Add(new Polygon(buffer, GetThickness(), color, stride, GetAlias(), ref pixels));
 
                 buffer.Clear();
