@@ -281,8 +281,10 @@ namespace Paint
                 List<int> color = GetColor();
                 if (tool == 0)
                     shapes.Add(new Line(buffer, GetThickness(), color, stride, GetAlias(), ref pixels));
-                else
+                else if (tool == 1)
                     shapes.Add(new Circle(buffer, GetThickness(), color, stride, ref pixels));
+                else
+                    shapes.Add(new Rectangle(buffer, GetThickness(), color, stride, GetAlias(), ref pixels));
 
                 buffer.Clear();
                 Info.Text = "";
@@ -459,7 +461,10 @@ namespace Paint
                 //move vertex
                 if (nb.Count == 2)
                 {
-                    (existingShape as Polygon).PrepareNewVertices(nb[0], nb[1], x, y);
+                    if(existingShape is Rectangle)
+                        (existingShape as Rectangle).PrepareNewVertices(nb[0], nb[1], x, y);
+                    else
+                        (existingShape as Polygon).PrepareNewVertices(nb[0], nb[1], x, y);
                     existingShape.Edit(existingShape.Points, null, null);
                     Redraw();
                     buffer.Clear();
@@ -480,8 +485,17 @@ namespace Paint
             }
             else if (buffer.Count == 6)
             {
-                List<int> nb1 = (existingShape as Polygon).CheckNeighborClick(buffer[2], buffer[3], x, y);
-                List<int> nb2 = (existingShape as Polygon).CheckNeighborClick(buffer[4], buffer[5], x, y);
+                List<int> nb1, nb2;
+                if (existingShape is Rectangle)
+                {
+                    nb1 = (existingShape as Rectangle).CheckNeighborClick(buffer[2], buffer[3], x, y);
+                    nb2 = (existingShape as Rectangle).CheckNeighborClick(buffer[4], buffer[5], x, y);
+                }
+                else
+                {
+                    nb1 = (existingShape as Polygon).CheckNeighborClick(buffer[2], buffer[3], x, y);
+                    nb2 = (existingShape as Polygon).CheckNeighborClick(buffer[4], buffer[5], x, y);
+                }
                 //move edge
                 if (nb1.Count == 2 && nb2.Count == 2)
                 {
@@ -489,8 +503,26 @@ namespace Paint
                     int dy = buffer[5] + (buffer[3] - buffer[5]) / 2;
                     dx = x - dx;
                     dy = y - dy;
-                    (existingShape as Polygon).PrepareNewVertices(buffer[2], buffer[3], buffer[2] + dx, buffer[3] + dy);
-                    (existingShape as Polygon).PrepareNewVertices(buffer[4], buffer[5], buffer[4] + dx, buffer[5] + dy);
+                    if (existingShape is Rectangle)
+                    {
+                        // vertical edge
+                        if (buffer[2] == buffer[4])
+                        {
+                            (existingShape as Polygon).PrepareNewVertices(buffer[2], buffer[3], buffer[2] + dx, buffer[3]);
+                            (existingShape as Rectangle).PrepareNewVertices(buffer[4], buffer[5], buffer[4] + dx, buffer[5]);
+                        }
+                        //horizontal edge
+                        else
+                        {
+                            (existingShape as Polygon).PrepareNewVertices(buffer[2], buffer[3], buffer[2], buffer[3] + dy);
+                            (existingShape as Rectangle).PrepareNewVertices(buffer[4], buffer[5], buffer[4], buffer[5] + dy);
+                        }
+                    }
+                    else
+                    {
+                        (existingShape as Polygon).PrepareNewVertices(buffer[2], buffer[3], buffer[2] + dx, buffer[3] + dy);
+                        (existingShape as Polygon).PrepareNewVertices(buffer[4], buffer[5], buffer[4] + dx, buffer[5] + dy);
+                    }
                     existingShape.Edit(existingShape.Points, null, null);
                     Redraw();
                     buffer.Clear();
@@ -559,16 +591,16 @@ namespace Paint
             {
                 Info.Text = "Click to place new vertex";
                 //new line or circle
-                if (tool < 2)
+                if (tool <= 2)
                 {
                     NewLineCircle(x, y);
                 }
                 //new polygon
-                if (tool == 2)
+                if (tool == 3)
                 {
                     NewPolygon(x, y);
                 }
-                if(tool == 3)
+                if(tool == 4)
                 {
                     NewCapsule(x, y);
                 }
@@ -603,7 +635,7 @@ namespace Paint
                 buffer.Clear();
                 Redraw();
             }
-            tool = 2;
+            tool = 3;
         }
 
         private void CapsuleBtn_Checked(object sender, RoutedEventArgs e)
@@ -613,7 +645,7 @@ namespace Paint
                 buffer.Clear();
                 Redraw();
             }
-            tool = 3;
+            tool = 4;
         }
 
         private void RectBtn_Checked(object sender, RoutedEventArgs e)
@@ -623,7 +655,7 @@ namespace Paint
                 buffer.Clear();
                 Redraw();
             }
-            tool = 4;
+            tool = 2;
         }
 
         private void AliasBox_Checked(object sender, RoutedEventArgs e)
@@ -702,6 +734,5 @@ namespace Paint
                 Redraw();
             }
         }
-
     }
 }

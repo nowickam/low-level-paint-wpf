@@ -6,10 +6,17 @@ using System.Threading.Tasks;
 
 namespace Paint
 {
-    class Polygon : Shape
+    public class Polygon : Shape
     {
         private bool aliasing;
         private List<Line> edges;
+
+        //constructor for the rectangle
+        public Polygon(int _thickness, List<int> _color, int _stride, bool _aliasing, ref byte[] pixels) : base(new List<int>(), _thickness, _color, _stride)
+        {
+            aliasing = _aliasing;
+        }
+
         public Polygon(List<int> _points, int _thickness, List<int> _color, int _stride, bool _aliasing, ref byte[] pixels) : base(_points, _thickness, _color, _stride)
         {
             aliasing = _aliasing;
