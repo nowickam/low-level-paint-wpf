@@ -559,7 +559,7 @@ namespace Paint
             {
                 Info.Text = "Click to place new vertex";
                 //new line or circle
-                if (tool <= 2)
+                if (tool < 2)
                 {
                     NewLineCircle(x, y);
                 }
