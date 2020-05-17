@@ -23,6 +23,12 @@ namespace Paint
             DrawShape(ref pixels);
         }
 
+        public List<Line> Edges
+        {
+            get { return edges; }
+         
+        }
+
         public override Shape CheckClick(int x, int y)
         {
             

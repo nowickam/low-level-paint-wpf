@@ -23,6 +23,7 @@ namespace Paint
         private int stride;
         private List<Shape> shapes;
         private List<Circle> vertices;
+        private List<Clipping> clips;
         private List<int> buffer;
         private int tool;
         private int V_SIZE = 5;
@@ -47,6 +48,7 @@ namespace Paint
 
             shapes = new List<Shape>();
             vertices = new List<Circle>();
+            clips = new List<Clipping>();
             buffer = new List<int>();
 
             newShape = true;
@@ -78,6 +80,10 @@ namespace Paint
             foreach (Shape s in shapes)
             {
                 s.DrawShape(ref pixels);
+            }
+            foreach(Clipping c in clips)
+            {
+                c.DrawShape(ref pixels);
             }
         }
 
@@ -196,6 +202,7 @@ namespace Paint
             Paint();
             shapes.Clear();
             vertices.Clear();
+            clips.Clear();
             buffer.Clear();
             Info.Text = "";
             newShape = true;
@@ -283,8 +290,10 @@ namespace Paint
                     shapes.Add(new Line(buffer, GetThickness(), color, stride, GetAlias(), ref pixels));
                 else if (tool == 1)
                     shapes.Add(new Circle(buffer, GetThickness(), color, stride, ref pixels));
-                else
+                else if(tool == 2)
                     shapes.Add(new Rectangle(buffer, GetThickness(), color, stride, GetAlias(), ref pixels));
+                else
+                    clips.Add(new Clipping(buffer, GetThickness(), color, stride, GetAlias(), ref pixels, ref shapes));
 
                 buffer.Clear();
                 Info.Text = "";
@@ -325,14 +334,14 @@ namespace Paint
             {
                 newShape = false;
                 //delete vertices
-                Redraw();
+                //Redraw();
 
                 List<int> color = GetColor();
                 shapes.Add(new Polygon(buffer, GetThickness(), color, stride, GetAlias(), ref pixels));
 
                 buffer.Clear();
                 Info.Text = "";
-                Paint();
+                Redraw();
             }
             else
             {
@@ -353,6 +362,11 @@ namespace Paint
                 foreach (Shape s in shapes)
                 {
                     existingShape = s.CheckClick(x, y);
+                    if (existingShape != null) return existingShape;
+                }
+                foreach (Clipping c in clips)
+                {
+                    existingShape = c.CheckClick(x, y);
                     if (existingShape != null) return existingShape;
                 }
             }
@@ -591,16 +605,16 @@ namespace Paint
             {
                 Info.Text = "Click to place new vertex";
                 //new line or circle
-                if (tool <= 2)
+                if (tool <= 3)
                 {
                     NewLineCircle(x, y);
                 }
                 //new polygon
-                if (tool == 3)
+                if (tool == 4)
                 {
                     NewPolygon(x, y);
                 }
-                if(tool == 4)
+                if(tool == 5)
                 {
                     NewCapsule(x, y);
                 }
@@ -635,7 +649,7 @@ namespace Paint
                 buffer.Clear();
                 Redraw();
             }
-            tool = 3;
+            tool = 4;
         }
 
         private void CapsuleBtn_Checked(object sender, RoutedEventArgs e)
@@ -645,7 +659,7 @@ namespace Paint
                 buffer.Clear();
                 Redraw();
             }
-            tool = 4;
+            tool = 5;
         }
 
         private void RectBtn_Checked(object sender, RoutedEventArgs e)
@@ -656,6 +670,16 @@ namespace Paint
                 Redraw();
             }
             tool = 2;
+        }
+
+        private void ClipBtn_Checked(object sender, RoutedEventArgs e)
+        {
+            if (buffer != null)
+            {
+                buffer.Clear();
+                Redraw();
+            }
+            tool = 3;
         }
 
         private void AliasBox_Checked(object sender, RoutedEventArgs e)
@@ -674,7 +698,7 @@ namespace Paint
 
         private Shape CheckEditMode()
         {
-            if (shapes != null)
+            if (shapes != null || clips != null)
             {
                 foreach (Shape s in shapes)
                 {
@@ -682,6 +706,14 @@ namespace Paint
                     {
                         s.EditMode = false;
                         return s;
+                    }
+                }
+                foreach (Clipping c in clips)
+                {
+                    if (c.EditMode)
+                    {
+                        c.EditMode = false;
+                        return c;
                     }
                 }
             }
@@ -713,7 +745,10 @@ namespace Paint
             {
                 buffer.Clear();
                 Info.Text = "";
-                shapes.Remove(edited);
+                if (edited is Clipping)
+                    clips.Remove((Clipping)edited);
+                else
+                    shapes.Remove(edited);
                 Redraw();
             }
         }
@@ -734,5 +769,6 @@ namespace Paint
                 Redraw();
             }
         }
+
     }
 }

@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Paint"
         mc:Ignorable="d"
-        Title="MainWindow" Height="600" Width="900">
+        Title="MainWindow" Height="700" Width="900">
     <Window.Resources>
         <Style TargetType="{x:Type Button}">
             <Setter Property="Background" Value="White"/>
@@ -21,6 +21,13 @@
             <Setter Property="TextAlignment" Value="Center"/>
             <Setter Property="TextWrapping" Value ="Wrap"/>
         </Style>
+        <Style TargetType="{x:Type Label}">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Margin" Value="4"/>
+            <Setter Property="Padding" Value="1"/>
+            <Setter Property="FontFamily" Value="Tahoma"/>
+            <Setter Property="FontSize" Value="15"/>
+        </Style>
         <Style TargetType="{x:Type Slider}">
             <Setter Property="TickPlacement" Value="BottomRight"/>
             <Setter Property="TickFrequency" Value="2"/>
@@ -30,6 +37,7 @@
             <Setter Property="Value" Value="1"/>
             <Setter Property="AutoToolTipPlacement" Value="BottomRight"/>
             <Setter Property="Ticks" Value="1,3,5,7,9"/>
+            <Setter Property="FontFamily" Value="Tahoma"/>
         </Style>
     </Window.Resources>
     <Grid>
@@ -37,29 +45,31 @@
             <ColumnDefinition Width="200"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
-        <StackPanel Name="btnContainer" Orientation="Vertical" Margin="10">
+        <StackPanel Name="btnContainer" Orientation="Vertical" Margin="10" >
+            <Label>Drawing modes</Label>
             <RadioButton Name="LineBtn" Content="Line" IsChecked="True" Checked="LineBtn_Checked"/>
             <RadioButton Name="CircleBtn" Content="Circle" Checked="CircleBtn_Checked"/>
             <RadioButton Name="RectBtn" Content="Rectangle" Checked="RectBtn_Checked"/>
             <RadioButton Name="PolyBtn" Content="Polygon" Checked="PolyBtn_Checked"/>
             <RadioButton Name="CapsuleBtn" Content="Capsule" Checked="CapsuleBtn_Checked"/>
-            <Label>Thickness:</Label>
+            <RadioButton Name="ClipBtn" Content="Clipping" Checked="ClipBtn_Checked"/>
+            <Label  Margin="0,20,0,0">Thickness:</Label>
             <Slider Name="ThickSlider" ValueChanged="ThickSlider_ValueChanged"/>
-            <Label>Color:</Label>
+            <Label Margin="0,20,0,0">Color:</Label>
             <StackPanel Name="ColorContainer" Orientation="Horizontal">
-                <Label>R</Label>
+                <TextBlock>R</TextBlock>
                 <TextBox Name="RedValue" Text="0" Width="30"  HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
-                <Label>G</Label>
+                <TextBlock>G</TextBlock>
                 <TextBox Name="GreenValue" Text="0" Width="30" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
-                <Label>B</Label>
+                <TextBlock>B</TextBlock>
                 <TextBox Name="BlueValue" Text="0" Width="30" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
             </StackPanel>
-            <Label>Aliasing:</Label>
+            <Label  Margin="0,20,0,0">Aliasing:</Label>
             <CheckBox Name="AliasBox" Click="AliasBox_Checked" />
-            <Button Name="ApplyColorBtn" Click="ApplyColorBtn_Click" IsEnabled="False">Apply new color</Button>
+            <Button Name="ApplyColorBtn" Margin="5,10,5,5" Click="ApplyColorBtn_Click" IsEnabled="False">Apply new color</Button>
             <Button Name="DeleteBtn" Click="DeleteBtn_Click" IsEnabled="False">Delete shape</Button>
-            <TextBlock Name="Info" MinHeight="150"/>
-            <Button Name="ResetBtn"  VerticalAlignment="Bottom" Click="ResetBtn_Click" >RESET</Button>
+            <TextBlock Margin="0,20,0,0" Name="Info" MinHeight="150"/>
+            <Button Name="ResetBtn" Margin="5,20,5,5"  VerticalAlignment="Bottom" Click="ResetBtn_Click" >RESET</Button>
             <Button Name="SaveBtn" VerticalAlignment="Bottom" Click="SaveBtn_Click" >SAVE</Button>
             <Button Name="LoadBtn" VerticalAlignment="Bottom" Click="LoadBtn_Click" >LOAD</Button>
         </StackPanel>

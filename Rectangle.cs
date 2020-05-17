@@ -12,12 +12,12 @@ namespace Paint
         public Rectangle(List<int> _points, int _thickness, List<int> _color, int _stride, bool _aliasing, ref byte[] pixels) : base(_thickness, _color, _stride, _aliasing, ref pixels)
         {
             // remake the pixels
-            actualPoints = ExtractPoints(_points);
+            actualPoints = RectFromDiagonal(_points);
             base.points = new List<int>(actualPoints);
             base.DrawShape(ref pixels);
         }
 
-        public List<int>  ExtractPoints(List<int> points)
+        public List<int> RectFromDiagonal(List<int> points)
         {
             List<int> newPoints = new List<int>();
 
@@ -58,7 +58,7 @@ namespace Paint
                     break;
                 }
             }
-            List<int> newPoints = ExtractPoints(new List<int>() { points[diagX1], points[diagY1], points[diagX2], points[diagY2] });
+            List<int> newPoints = RectFromDiagonal(new List<int>() { points[diagX1], points[diagY1], points[diagX2], points[diagY2] });
             points = new List<int>(newPoints);
 
             return points;
