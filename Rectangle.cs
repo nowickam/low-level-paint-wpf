@@ -14,7 +14,7 @@ namespace Paint
             // remake the pixels
             actualPoints = RectFromDiagonal(_points);
             base.points = new List<int>(actualPoints);
-            base.DrawShape(ref pixels);
+            //base.DrawShape(ref pixels);
         }
 
         public List<int> RectFromDiagonal(List<int> points)

@@ -20,6 +20,8 @@ namespace Paint
 
         protected bool editMode;
 
+        
+
         public Shape(List<int> _points, int _thickness, List<int> _color, int _stride)
         {
             points = new List<int>(_points);

@@ -5,8 +5,11 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Paint"
         mc:Ignorable="d"
-        Title="MainWindow" Height="700" Width="900">
+        Title="MainWindow" Height="750" Width="900" MinHeight="750" MinWidth="900">
     <Window.Resources>
+        <Style TargetType="{x:Type RadioButton}">
+            <Setter Property="FontFamily" Value="Tahoma"/>
+        </Style>
         <Style TargetType="{x:Type Button}">
             <Setter Property="Background" Value="White"/>
             <Setter Property="Margin" Value="4"/>
@@ -64,10 +67,12 @@
                 <TextBlock>B</TextBlock>
                 <TextBox Name="BlueValue" Text="0" Width="30" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
             </StackPanel>
+            <Button Name="ApplyColorOutBtn" Margin="5,10,5,5" Click="ApplyColorOutBtn_Click" IsEnabled="False">Change outline color</Button>
+            <Button Name="ApplyColorFillBtn" Click="ApplyColorFillBtn_Click"  IsEnabled="False">Change filling color</Button>
+            <Button Name="FillImgBtn"  Click="FillImgBtn_Click"  IsEnabled="False">Change filling image</Button>
             <Label  Margin="0,20,0,0">Aliasing:</Label>
             <CheckBox Name="AliasBox" Click="AliasBox_Checked" />
-            <Button Name="ApplyColorBtn" Margin="5,10,5,5" Click="ApplyColorBtn_Click" IsEnabled="False">Apply new color</Button>
-            <Button Name="DeleteBtn" Click="DeleteBtn_Click" IsEnabled="False">Delete shape</Button>
+            <Button Name="DeleteBtn" Margin="5,20,5,5" Click="DeleteBtn_Click" IsEnabled="False">Delete shape</Button>
             <TextBlock Margin="0,20,0,0" Name="Info" MinHeight="150"/>
             <Button Name="ResetBtn" Margin="5,20,5,5"  VerticalAlignment="Bottom" Click="ResetBtn_Click" >RESET</Button>
             <Button Name="SaveBtn" VerticalAlignment="Bottom" Click="SaveBtn_Click" >SAVE</Button>

@@ -384,7 +384,9 @@ namespace Paint
         {
             //finish editing
             DeleteBtn.IsEnabled = false;
-            ApplyColorBtn.IsEnabled = false;
+            ApplyColorOutBtn.IsEnabled = false;
+            ApplyColorFillBtn.IsEnabled = false;
+            FillImgBtn.IsEnabled = false;
             if (buffer.Count == 2)
             {
                 existingShape.Edit(new List<int> { buffer[0], buffer[1], x, y }, null, null);
@@ -397,7 +399,9 @@ namespace Paint
             {
                 Info.Text = "Click somewhere to change the position of the vertex";
                 DeleteBtn.IsEnabled = true;
-                ApplyColorBtn.IsEnabled = true;
+                ApplyColorFillBtn.IsEnabled = false;
+                FillImgBtn.IsEnabled = false;
+                ApplyColorOutBtn.IsEnabled = true;
                 HandleVertex(x, y, 2);
                 if (x <= existingShape.Points[0] + V_SIZE && x >= existingShape.Points[0] - V_SIZE)
                 {
@@ -419,7 +423,9 @@ namespace Paint
             {
                 Info.Text = "Click on the circle to change the radius,\n click on the center to move the circle";
                 DeleteBtn.IsEnabled = true;
-                ApplyColorBtn.IsEnabled = true;
+                ApplyColorFillBtn.IsEnabled = false;
+                FillImgBtn.IsEnabled = false;
+                ApplyColorOutBtn.IsEnabled = true;
                 HandleVertex(cx, cy, 2);
                 buffer.Add(cx);
                 buffer.Add(cy);
@@ -427,7 +433,9 @@ namespace Paint
             else if (buffer.Count == 2)
             {
                 DeleteBtn.IsEnabled = false;
-                ApplyColorBtn.IsEnabled = false;
+                ApplyColorOutBtn.IsEnabled = false;
+                ApplyColorFillBtn.IsEnabled = false;
+                FillImgBtn.IsEnabled = false;
                 //if clicked on the center -> move the circle
                 if (x <= cx + 5 && x >= cx - 5 && y <= cy + 5 && y >= cy - 5)
                 {
@@ -462,7 +470,12 @@ namespace Paint
             {
                 Info.Text = "Choose one vertex to change the vertex' position,\n choose two neighboring vertices to change the edge's position,\n choose three neighboring vertices to change the position of the polygon";
                 DeleteBtn.IsEnabled = true;
-                ApplyColorBtn.IsEnabled = true;
+                ApplyColorOutBtn.IsEnabled = true;
+                if (!(existingShape is Clipping))
+                {
+                    ApplyColorFillBtn.IsEnabled = true;
+                    FillImgBtn.IsEnabled = true;
+                }
                 HandleVertex(x, y, 2);
                 buffer.Add(x);
                 buffer.Add(y);
@@ -470,7 +483,9 @@ namespace Paint
             else if (buffer.Count == 2)
             {
                 DeleteBtn.IsEnabled = false;
-                ApplyColorBtn.IsEnabled = false;
+                ApplyColorOutBtn.IsEnabled = false;
+                ApplyColorFillBtn.IsEnabled = false;
+                FillImgBtn.IsEnabled = false;
                 List<int> nb = (existingShape as Polygon).CheckNeighborClick(buffer[0], buffer[1], x, y);
                 //move vertex
                 if (nb.Count == 2)
@@ -739,8 +754,10 @@ namespace Paint
         {
             Shape edited = CheckEditMode();
             DeleteBtn.IsEnabled = false;
-            ApplyColorBtn.IsEnabled = false;
-            
+            ApplyColorOutBtn.IsEnabled = false;
+            ApplyColorFillBtn.IsEnabled = false;
+            FillImgBtn.IsEnabled = false;
+
             if (edited != null)
             {
                 buffer.Clear();
@@ -753,13 +770,15 @@ namespace Paint
             }
         }
 
-        private void ApplyColorBtn_Click(object sender, RoutedEventArgs e)
+        private void ApplyColorOutBtn_Click(object sender, RoutedEventArgs e)
         {
             Shape edited = CheckEditMode();
             List<int> color = GetColor();
             DeleteBtn.IsEnabled = false;
-            ApplyColorBtn.IsEnabled = false;
-            
+            ApplyColorOutBtn.IsEnabled = false;
+            ApplyColorFillBtn.IsEnabled = false;
+            FillImgBtn.IsEnabled = false;
+
             if (edited != null)
             {
                 edited.EditMode = false;
@@ -767,6 +786,55 @@ namespace Paint
                 Info.Text = "";
                 edited.Edit(null, null, color);
                 Redraw();
+            }
+        }
+
+        private void ApplyColorFillBtn_Click(object sender, RoutedEventArgs e)
+        {
+            Shape edited = CheckEditMode();
+            List<int> color = GetColor();
+            DeleteBtn.IsEnabled = false;
+            ApplyColorOutBtn.IsEnabled = false;
+            ApplyColorFillBtn.IsEnabled = false;
+            FillImgBtn.IsEnabled = false;
+
+            if (edited != null && edited is Polygon && !(edited is Clipping))
+            {
+                edited.EditMode = false;
+                buffer.Clear();
+                Info.Text = "";
+                ((Polygon)edited).Edit(color);
+                Redraw();
+                
+            }
+        }
+
+        private void FillImgBtn_Click(object sender, RoutedEventArgs e)
+        {
+            Shape edited = CheckEditMode();
+            DeleteBtn.IsEnabled = false;
+            ApplyColorOutBtn.IsEnabled = false;
+            ApplyColorFillBtn.IsEnabled = false;
+            FillImgBtn.IsEnabled = false;
+
+            System.Windows.Forms.OpenFileDialog dialog = new System.Windows.Forms.OpenFileDialog();
+            dialog.Filter = "Image files (*.jpg, *.jpeg, *.png) | *.jpg; *.jpeg; *.png";
+            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+
+                if (edited != null && edited is Polygon && !(edited is Clipping))
+                {
+                    edited.EditMode = false;
+                    buffer.Clear();
+                    Info.Text = "";
+
+                    BitmapImage b = new BitmapImage(new Uri(dialog.InitialDirectory + dialog.FileName));
+
+
+                    ((Polygon)edited).Edit(b);
+                    Redraw();
+
+                }
             }
         }
 
