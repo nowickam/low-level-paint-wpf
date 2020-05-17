@@ -13,6 +13,7 @@ namespace Paint
         private List<Line> edges;
         private List<int> fillColor;
         private byte[] imgPixels;
+        private string imgPath;
         private int imgStride;
         //fill flag -> 0 no fill, 1 color fill, 2 image fill
         private int fill;
@@ -36,11 +37,33 @@ namespace Paint
             
         }
 
+        public List<Line> Edges
+        {
+            get { return edges; }
+
+        }
+
+        public int FillFlag
+        {
+            get { return fill; }
+        }
+
+        public List<int> FillColor
+        {
+            get { return fillColor; }
+        }
+
+        public string ImgPath
+        {
+            get { return imgPath; }
+        }
+
 
         //constructor for the rectangle
         public Polygon(int _thickness, List<int> _color, int _stride, bool _aliasing, ref byte[] pixels) : base(new List<int>(), _thickness, _color, _stride)
         {
             aliasing = _aliasing;
+            imgPath = null;
             fill = 0;
         }
 
@@ -48,15 +71,28 @@ namespace Paint
         {
             aliasing = _aliasing;
             ET = new Dictionary<int, List<Edge>>();
+            imgPath = null;
             fill = 0;
             DrawShape(ref pixels);
         }
 
-        public List<Line> Edges
+        public Polygon(List<int> _points, int _thickness, List<int> _color, List<int> _fillColor, string _imgPath, int _stride, bool _aliasing, ref byte[] pixels) : base(_points, _thickness, _color, _stride)
         {
-            get { return edges; }
-         
+            aliasing = _aliasing;
+            ET = new Dictionary<int, List<Edge>>();
+            if (_fillColor[0] != -1)
+            {
+                Edit(_fillColor);
+            }
+            else if(_imgPath != "empty" && _imgPath != null)
+            {
+                Edit(_imgPath);
+            }
+            else 
+                fill = 0;
+            DrawShape(ref pixels);
         }
+
 
         private List<int> ExtractX(Dictionary<int, List<Edge>> aet)
         {
@@ -139,9 +175,11 @@ namespace Paint
                         }
                         else if (fill == 2)
                         {
-                            pixels[y * stride + j * 3 + 2] = (byte)imgPixels[(y * imgStride + j * 4)%(imgPixels.Length)];
-                            pixels[y * stride + j * 3 + 1] = (byte)imgPixels[(y * imgStride + j * 4 + 1) % (imgPixels.Length)];
-                            pixels[y * stride + j * 3 ] = (byte)imgPixels[(y * imgStride + j * 4 + 2) % (imgPixels.Length)];
+                            int index2 = Math.Max(0, y * stride + j * 3);
+                            int index = Math.Max(0, y * imgStride + j * 4);
+                            pixels[index2 + 2] = (byte)imgPixels[index % imgPixels.Length];
+                            pixels[index2 + 1] = (byte)imgPixels[(index + 1) % imgPixels.Length];
+                            pixels[index2 ] = (byte)imgPixels[(index + 2) % imgPixels.Length];
                         }
                     }
                 }
@@ -287,8 +325,22 @@ namespace Paint
                 fill = 1;
         }
 
-        public void Edit(BitmapImage newFillImg)
+        public void Edit(string newFillImgPath)
         {
+            imgPath = newFillImgPath;
+            Uri newFillImgUri = new Uri(imgPath);
+            BitmapImage newFillImg;
+            try
+            {
+                newFillImg = new BitmapImage(newFillImgUri);
+            }
+            catch(System.IO.FileNotFoundException e)
+            {
+                Console.Error.WriteLine(e);
+                Edit(new List<int>() { 0, 0, 0 });
+                fill = 1;
+                return;
+            }
             imgPixels = new byte[newFillImg.PixelWidth * newFillImg.PixelHeight * 4];
             imgStride = newFillImg.PixelWidth * 4;
             newFillImg.CopyPixels(imgPixels, imgStride, 0);

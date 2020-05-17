@@ -12,9 +12,12 @@ namespace Paint
         public Rectangle(List<int> _points, int _thickness, List<int> _color, int _stride, bool _aliasing, ref byte[] pixels) : base(_thickness, _color, _stride, _aliasing, ref pixels)
         {
             // remake the pixels
-            actualPoints = RectFromDiagonal(_points);
+            if (_points.Count == 4)
+                actualPoints = RectFromDiagonal(_points);
+            else
+                actualPoints = new List<int>(_points);
             base.points = new List<int>(actualPoints);
-            //base.DrawShape(ref pixels);
+            base.DrawShape(ref pixels);
         }
 
         public List<int> RectFromDiagonal(List<int> points)

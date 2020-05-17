@@ -92,31 +92,78 @@ namespace Paint
             StringBuilder sb = new StringBuilder();
             foreach(Shape s in shapes)
             {
-                sb.Append(s.GetType().Name+":");
+                sb.Append(s.GetType().Name+";");
                 foreach(int point in s.Points)
                 {
                     sb.Append(point.ToString() + ",");
                 }
                 sb.Remove(sb.Length-1,1);
-                sb.Append(":");
+                sb.Append(";");
                 foreach (int c in s.Color)
                 {
                     sb.Append(c.ToString() + ",");
                 }
                 sb.Remove(sb.Length - 1, 1);
-                sb.Append(":");
-                sb.Append(s.Thickness+"\n");
+                sb.Append(";");
+                sb.Append(s.Thickness);
+                if(s is Polygon)
+                {
+                    sb.Append(";");
+                    if (((Polygon)s).FillFlag == 1)
+                    {
+                        List<int> c = ((Polygon)s).FillColor;
+                        sb.Append(c[0].ToString() + ",");
+                        sb.Append(c[1].ToString() + ",");
+                        sb.Append(c[2].ToString());
+                    }
+                    else
+                    {
+                        sb.Append("-1,-1,-1");
+                    }
+                                      
+                    sb.Append(";");
+                    if(((Polygon)s).FillFlag == 2 && ((Polygon)s).ImgPath != null)
+                    {
+                        sb.Append(((Polygon)s).ImgPath);
+                        sb.Append("\n");
+                    }
+                    else
+                    {
+                        sb.Append("empty\n");
+                    }
+                }
+                else
+                {
+                    sb.Append("\n");
+                }
+            }
+            foreach(Clipping c in clips)
+            {
+                sb.Append(c.GetType().Name + ";");
+                foreach (int point in c.Points)
+                {
+                    sb.Append(point.ToString() + ",");
+                }
+                sb.Remove(sb.Length - 1, 1);
+                sb.Append(";");
+                foreach (int cl in c.Color)
+                {
+                    sb.Append(cl.ToString() + ",");
+                }
+                sb.Remove(sb.Length - 1, 1);
+                sb.Append(";");
+                sb.Append(c.Thickness+"\n");
             }
             if(sb.Length>0)sb.Remove(sb.Length - 1, 1);
             return sb.ToString();
         }
 
-        private List<Shape> TextToShape(string[] text)
+        private void TextToShape(string[] text)
         {
-            List<Shape> shapes = new List<Shape>();
+            //List<Shape> shapes = new List<Shape>();
             foreach(string line in text)
             {
-                string[] attr = line.Split(':');
+                string[] attr = line.Split(';');
 
                 string[] pts = attr[1].Split(',');
                 List<int> points = new List<int>();
@@ -130,25 +177,50 @@ namespace Paint
 
                 int thickness = int.Parse(attr[3]);
                 Shape s;
+                Clipping c;
 
                 switch (attr[0])
                 {
                     case "Line":
                         s = new Line(points, thickness, color, stride, GetAlias(), ref pixels);
+                        c = null;
                         break;
                     case "Polygon":
-                        s = new Polygon(points, thickness, color, stride, GetAlias(), ref pixels);
+                        clrs = attr[4].Split(',');
+                        List<int> colorFill = new List<int>();
+                        foreach (string cl in clrs)
+                            colorFill.Add(int.Parse(cl));
+
+                        string imageFill = attr[5];
+
+                        s = new Polygon(points, thickness, color, colorFill, imageFill, stride, GetAlias(), ref pixels);
+                        c = null;
                         break;
                     case "Circle":
                         s = new Circle(points, thickness, color, stride, ref pixels);
+                        c = null;
+                        break;
+                    case "Capsule":
+                        s = new Capsule(points, thickness, color, stride, ref pixels);
+                        c = null;
+                        break;
+                    case "Rectangle":
+                        s = new Rectangle(points, thickness, color, stride, GetAlias(), ref pixels);
+                        c = null;
+                        break;
+                    case "Clipping":
+                        c = new Clipping(points, thickness, color, stride, GetAlias(), ref pixels, ref shapes);
+                        s = null;
                         break;
                     default:
                         s = null;
+                        c = null;
                         break;
                 }
 
                 if(s!=null) shapes.Add(s);
-                Console.WriteLine(s.GetType().Name);
+                if (c != null) clips.Add(c);
+                
             }
             return shapes;
         }
@@ -181,12 +253,14 @@ namespace Paint
                 {
                     string[] shapesText = shapeText.Split('\n');
                     shapes.Clear();
-                    shapes = TextToShape(shapesText);
+                    clips.Clear();
+                    TextToShape(shapesText);
                     newShape = false;
                 }
                 else
                 {
                     shapes.Clear();
+                    clips.Clear();
                     newShape = true;
 
                 }
@@ -206,6 +280,10 @@ namespace Paint
             buffer.Clear();
             Info.Text = "";
             newShape = true;
+            DeleteBtn.IsEnabled = false;
+            ApplyColorOutBtn.IsEnabled = false;
+            ApplyColorFillBtn.IsEnabled = false;
+            FillImgBtn.IsEnabled = false;
         }
 
         private void ColorCheck(TextBox tb)
@@ -376,7 +454,7 @@ namespace Paint
 
         private void SetShapeConfig(Shape s)
         {
-            ThickSlider.Value = s.Thickness;
+            //ThickSlider.Value = s.Thickness;
             SetColor(s.Color);
         }
 
@@ -471,8 +549,23 @@ namespace Paint
                 Info.Text = "Choose one vertex to change the vertex' position,\n choose two neighboring vertices to change the edge's position,\n choose three neighboring vertices to change the position of the polygon";
                 DeleteBtn.IsEnabled = true;
                 ApplyColorOutBtn.IsEnabled = true;
-                if (!(existingShape is Clipping))
+                if(existingShape is Clipping)
                 {
+                    tool = 3;
+                    ClipBtn.IsChecked = true;
+                }
+                else 
+                {
+                    if(existingShape is Rectangle)
+                    {
+                        tool = 2;
+                        RectBtn.IsChecked = true;
+                    }
+                    else
+                    {
+                        tool = 4;
+                        PolyBtn.IsChecked = true;
+                    }
                     ApplyColorFillBtn.IsEnabled = true;
                     FillImgBtn.IsEnabled = true;
                 }
@@ -605,10 +698,14 @@ namespace Paint
                 SetShapeConfig(existingShape);
                 if (existingShape is Line)
                 {
+                    tool = 0;
+                    LineBtn.IsChecked = true;
                     EditLine(existingShape, x, y);
                 }
                 else if (existingShape is Circle)
                 {
+                    tool = 1;
+                    CircleBtn.IsChecked = true;
                     EditCircle(existingShape, x, y);
                 }
                 else if (existingShape is Polygon)
@@ -827,11 +924,8 @@ namespace Paint
                     edited.EditMode = false;
                     buffer.Clear();
                     Info.Text = "";
-
-                    BitmapImage b = new BitmapImage(new Uri(dialog.InitialDirectory + dialog.FileName));
-
-
-                    ((Polygon)edited).Edit(b);
+                
+                    ((Polygon)edited).Edit(dialog.InitialDirectory + dialog.FileName);
                     Redraw();
 
                 }
