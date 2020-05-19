@@ -28,13 +28,15 @@ namespace Paint
         private int tool;
         private int V_SIZE = 5;
         private bool newShape;
+        private bool flood;
 
         public MainWindow()
         {
             InitializeComponent();
 
-            width = (int)SystemParameters.PrimaryScreenWidth ;
-            height = (int)SystemParameters.PrimaryScreenHeight ;
+            width = (int)SystemParameters.PrimaryScreenWidth;
+            height = (int)SystemParameters.PrimaryScreenHeight;
+
             stride = width * 3;
 
             canvas = new WriteableBitmap(width, height, 96, 96, PixelFormats.Rgb24, null);
@@ -45,6 +47,7 @@ namespace Paint
             Paint();
 
             canvasContainer.Source = canvas;
+            flood = false;
 
             shapes = new List<Shape>();
             vertices = new List<Circle>();
@@ -222,7 +225,6 @@ namespace Paint
                 if (c != null) clips.Add(c);
                 
             }
-            return shapes;
         }
 
         private void SaveBtn_Click(object sender, RoutedEventArgs e)
@@ -284,6 +286,8 @@ namespace Paint
             ApplyColorOutBtn.IsEnabled = false;
             ApplyColorFillBtn.IsEnabled = false;
             FillImgBtn.IsEnabled = false;
+            flood = false;
+            FloodBox.IsChecked = false;
         }
 
         private void ColorCheck(TextBox tb)
@@ -693,7 +697,12 @@ namespace Paint
 
             Shape existingShape = CheckClik(x, y);
 
-            if (existingShape != null && !newShape)
+            if (flood)
+            {
+                Flood(x, y);
+                Paint();
+            }
+            else if (existingShape != null && !newShape)
             {
                 SetShapeConfig(existingShape);
                 if (existingShape is Line)
@@ -729,6 +738,69 @@ namespace Paint
                 if(tool == 5)
                 {
                     NewCapsule(x, y);
+                }
+            }
+        }
+
+        private void Flood(int initX, int initY)
+        {
+            Queue<Tuple<int,int>> q = new Queue<Tuple<int,int>>();
+
+            List<int> color = GetColor();
+            List<int> initColor = new List<int>() { pixels[initY * stride + 3 * initX], pixels[initY * stride + 3 * initX + 1], pixels[initY * stride + 3 * initX + 2] };
+
+            int x, y, tempX, tempY;
+            Tuple<int,int> init = new Tuple<int, int>(initX, initY);
+            x = initX; y = initY;
+            pixels[y * stride + 3 * x] = (byte)color[0];
+            pixels[y * stride + 3 * x + 1] = (byte)color[1];
+            pixels[y * stride + 3 * x + 2] = (byte)color[2];
+            q.Enqueue(init);
+
+            Tuple<int, int> temp;
+
+            while (q.Count != 0 )
+            {
+                temp = q.Dequeue();
+                x = temp.Item1;
+                y = temp.Item2;          
+
+                if (pixels[(y - 1) * stride + 3 * x] == initColor[0] && pixels[(y - 1) * stride + 3 * x + 1] == initColor[1] && pixels[(y - 1) * stride + 3 * x + 2] == initColor[2])
+                {
+                    tempY = y - 1;
+                    temp = new Tuple<int, int>(x, tempY);
+                    pixels[tempY * stride + 3 * x] = (byte)color[0];
+                    pixels[tempY * stride + 3 * x + 1] = (byte)color[1];
+                    pixels[tempY * stride + 3 * x + 2] = (byte)color[2];
+                    q.Enqueue(temp);
+                }
+                if (pixels[(y + 1) * stride + 3 * x] == initColor[0] && pixels[(y + 1) * stride + 3 * x + 1] == initColor[1] && pixels[(y + 1) * stride + 3 * x + 2] == initColor[2])
+                {
+                    tempY = y + 1;
+                    temp = new Tuple<int, int>(x, tempY);
+                    pixels[tempY * stride + 3 * x] = (byte)color[0];
+                    pixels[tempY * stride + 3 * x + 1] = (byte)color[1];
+                    pixels[tempY * stride + 3 * x + 2] = (byte)color[2];
+                    q.Enqueue(temp);
+                }
+                if (pixels[(y) * stride + 3 * (x - 1)] == initColor[0] && pixels[(y) * stride + 3 * (x - 1) + 1] == initColor[1] && pixels[(y) * stride + 3 * (x - 1) + 2] == initColor[2])
+                {
+                    tempX = x - 1;
+                    temp = new Tuple<int, int>(tempX, y);
+                    pixels[y * stride + 3 * tempX] = (byte)color[0];
+                    pixels[y * stride + 3 * tempX + 1] = (byte)color[1];
+                    pixels[y * stride + 3 * tempX + 2] = (byte)color[2];
+                    q.Enqueue(temp);
+
+                }
+                if (pixels[(y) * stride + 3 * (x + 1)] == initColor[0] && pixels[(y) * stride + 3 * (x + 1) + 1] == initColor[1] && pixels[(y) * stride + 3 * (x + 1) + 2] == initColor[2])
+                {
+                    tempX = x + 1;
+                    temp = new Tuple<int, int>(tempX, y);
+                    pixels[y * stride + 3 * tempX] = (byte)color[0];
+                    pixels[y * stride + 3 * tempX + 1] = (byte)color[1];
+                    pixels[y * stride + 3 * tempX + 2] = (byte)color[2];
+                    q.Enqueue(temp);
                 }
             }
         }
@@ -930,6 +1002,14 @@ namespace Paint
 
                 }
             }
+        }
+
+        private void FloodBox_Click(object sender, RoutedEventArgs e)
+        {
+            if ((bool)FloodBox.IsChecked)
+                flood = true;
+            else
+                flood = false;
         }
 
     }
