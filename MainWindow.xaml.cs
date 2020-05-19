@@ -742,6 +742,16 @@ namespace Paint
             }
         }
 
+        private bool IfInside(int x, int y)
+        {
+            return x >= 0 && y >= 0 && x < width - 3 && y < height;
+        }
+
+        private bool IfInitColor(int x, int y, List<int> initColor)
+        {
+            return pixels[y * stride + 3 * x] == initColor[0] && pixels[y * stride + 3 * x + 1] == initColor[1] && pixels[y * stride + 3 * x + 2] == initColor[2];
+        }
+
         private void Flood(int initX, int initY)
         {
             Queue<Tuple<int,int>> q = new Queue<Tuple<int,int>>();
@@ -765,42 +775,54 @@ namespace Paint
                 x = temp.Item1;
                 y = temp.Item2;          
 
-                if (pixels[(y - 1) * stride + 3 * x] == initColor[0] && pixels[(y - 1) * stride + 3 * x + 1] == initColor[1] && pixels[(y - 1) * stride + 3 * x + 2] == initColor[2])
+                if (IfInside(x, y - 1))
                 {
-                    tempY = y - 1;
-                    temp = new Tuple<int, int>(x, tempY);
-                    pixels[tempY * stride + 3 * x] = (byte)color[0];
-                    pixels[tempY * stride + 3 * x + 1] = (byte)color[1];
-                    pixels[tempY * stride + 3 * x + 2] = (byte)color[2];
-                    q.Enqueue(temp);
+                    if (IfInitColor(x, y - 1, initColor))
+                    {
+                        tempY = y - 1;
+                        temp = new Tuple<int, int>(x, tempY);
+                        pixels[tempY * stride + 3 * x] = (byte)color[0];
+                        pixels[tempY * stride + 3 * x + 1] = (byte)color[1];
+                        pixels[tempY * stride + 3 * x + 2] = (byte)color[2];
+                        q.Enqueue(temp);
+                    }
                 }
-                if (pixels[(y + 1) * stride + 3 * x] == initColor[0] && pixels[(y + 1) * stride + 3 * x + 1] == initColor[1] && pixels[(y + 1) * stride + 3 * x + 2] == initColor[2])
+                if (IfInside(x, y + 1))
                 {
-                    tempY = y + 1;
-                    temp = new Tuple<int, int>(x, tempY);
-                    pixels[tempY * stride + 3 * x] = (byte)color[0];
-                    pixels[tempY * stride + 3 * x + 1] = (byte)color[1];
-                    pixels[tempY * stride + 3 * x + 2] = (byte)color[2];
-                    q.Enqueue(temp);
+                    if (IfInitColor(x, y + 1, initColor))
+                    {
+                        tempY = y + 1;
+                        temp = new Tuple<int, int>(x, tempY);
+                        pixels[tempY * stride + 3 * x] = (byte)color[0];
+                        pixels[tempY * stride + 3 * x + 1] = (byte)color[1];
+                        pixels[tempY * stride + 3 * x + 2] = (byte)color[2];
+                        q.Enqueue(temp);
+                    }
                 }
-                if (pixels[(y) * stride + 3 * (x - 1)] == initColor[0] && pixels[(y) * stride + 3 * (x - 1) + 1] == initColor[1] && pixels[(y) * stride + 3 * (x - 1) + 2] == initColor[2])
+                if (IfInside(x - 1, y))
                 {
-                    tempX = x - 1;
-                    temp = new Tuple<int, int>(tempX, y);
-                    pixels[y * stride + 3 * tempX] = (byte)color[0];
-                    pixels[y * stride + 3 * tempX + 1] = (byte)color[1];
-                    pixels[y * stride + 3 * tempX + 2] = (byte)color[2];
-                    q.Enqueue(temp);
+                    if (IfInitColor(x - 1, y, initColor))
+                    {
+                        tempX = x - 1;
+                        temp = new Tuple<int, int>(tempX, y);
+                        pixels[y * stride + 3 * tempX] = (byte)color[0];
+                        pixels[y * stride + 3 * tempX + 1] = (byte)color[1];
+                        pixels[y * stride + 3 * tempX + 2] = (byte)color[2];
+                        q.Enqueue(temp);
+                    }
 
                 }
-                if (pixels[(y) * stride + 3 * (x + 1)] == initColor[0] && pixels[(y) * stride + 3 * (x + 1) + 1] == initColor[1] && pixels[(y) * stride + 3 * (x + 1) + 2] == initColor[2])
+                if (IfInside(x + 1, y))
                 {
-                    tempX = x + 1;
-                    temp = new Tuple<int, int>(tempX, y);
-                    pixels[y * stride + 3 * tempX] = (byte)color[0];
-                    pixels[y * stride + 3 * tempX + 1] = (byte)color[1];
-                    pixels[y * stride + 3 * tempX + 2] = (byte)color[2];
-                    q.Enqueue(temp);
+                    if (IfInitColor(x + 1, y, initColor))
+                    {
+                        tempX = x + 1;
+                        temp = new Tuple<int, int>(tempX, y);
+                        pixels[y * stride + 3 * tempX] = (byte)color[0];
+                        pixels[y * stride + 3 * tempX + 1] = (byte)color[1];
+                        pixels[y * stride + 3 * tempX + 2] = (byte)color[2];
+                        q.Enqueue(temp);
+                    }
                 }
             }
         }
